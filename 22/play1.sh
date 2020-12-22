@@ -1,3 +1,5 @@
+#!/usr/bin/zsh
+
 # Copyright (C) 2020  Paul Seyfert
 # Author: Paul Seyfert <pseyfert.mathphys@gmail.com>
 #
@@ -33,7 +35,7 @@ score1() {
 }
 score2() {
   acc=0
-  echo "scoring deck $deck2"
+  # echo "scoring deck $deck2"
   for index in $(seq $#deck2) ; do
     ((acc += $index * $deck2[-$index]))
   done
@@ -54,31 +56,31 @@ while read line; do
   fi
 done < input.txt
 
-echo "deck1 at start of game is $deck1"
-echo "deck2 at start of game is $deck2"
+# echo "deck1 at start of game is $deck1"
+# echo "deck2 at start of game is $deck2"
 
 while true; do 
 # for i in $(seq $1) ; do
-  echo
-  echo
-  echo "starting a round $i out of $1"
-  echo
-  echo "deck1 is $deck1"
-  echo "deck2 is $deck2"
+  # echo
+  # echo
+  # echo "starting a round $i out of $1"
+  # echo
+  # echo "deck1 is $deck1"
+  # echo "deck2 is $deck2"
 
   # step || break
   step
   if (($?==0)); then
-    echo "asking for next round"
+    # echo "asking for next round"
     continue
   else
     winner=$?
-    echo "aborting"
+    # echo "aborting"
     break
   fi
 done
 
-echo "winning player has number $winner"
+# echo "winning player has number $winner"
 
 if (($winner==1)); then
   echo "player 1 won"
