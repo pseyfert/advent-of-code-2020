@@ -24,22 +24,47 @@ score2() {
   return $acc
 }
 
-deck1=(9 2 6 3 1)
-deck2=(5 8 4 7 10)
+deck1=()
+deck2=()
+read2=False
+while read line; do
+  [[ $line = Player*2* ]] && read2=True
+  [[ $line = Player* ]] && continue
+  (( $#line == 0 )) && continue
+  if [[ $read2 == True ]]; then
+    deck2+=($line)
+  else
+    deck1+=($line)
+  fi
+done < input.txt
+
+echo "deck1 at start of game is $deck1"
+echo "deck2 at start of game is $deck2"
+
 while true; do 
-# for i in seq 3 ; do
-  # echo
-  # echo
-  # echo
-  # echo "starting a new round"
-  # echo
-  # echo "deck1 is $deck1"
-  # echo "deck2 is $deck2"
-  #
-  step || break
+# for i in $(seq $1) ; do
+  echo
+  echo
+  echo "starting a round $i out of $1"
+  echo
+  echo "deck1 is $deck1"
+  echo "deck2 is $deck2"
+
+  # step || break
+  step
+  if (($?==0)); then
+    echo "asking for next round"
+    continue
+  else
+    winner=$?
+    echo "aborting"
+    break
+  fi
 done
 
-if (($?==1)); then
+echo "winning player has number $winner"
+
+if (($winner==1)); then
   echo "player 1 won"
   score1
   sc=$?
