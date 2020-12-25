@@ -37,6 +37,8 @@ with open("input.txt", 'r') as reader:
             LineBuffer = []
 
 from ROOT import lut, dofps
+fps = dofps(AllTiles)
+LUT = lut(AllTiles)
 for i, o in enumerate(fps):
     # it turns out, there are no ambiguities about which tiles match against each other
     # for many it holds that for each border there is exactly one other tile with one edge that has the same fingerprint
