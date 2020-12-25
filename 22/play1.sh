@@ -54,7 +54,7 @@ while read line; do
   else
     deck1+=($line)
   fi
-done < input.txt
+done < $1
 
 # echo "deck1 at start of game is $deck1"
 # echo "deck2 at start of game is $deck2"
