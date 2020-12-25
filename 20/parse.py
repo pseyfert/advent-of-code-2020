@@ -1,7 +1,7 @@
 import re
-import ROOT
-ROOT.gInterpreter.LoadFile("api.h")
-from ROOT import TileTemplate
+import cppyy
+cppyy.include("api.h")
+from cppyy.gbl import TileTemplate
 
 AllTiles = []
 with open("input.txt", 'r') as reader:
@@ -35,10 +35,10 @@ with open("input.txt", 'r') as reader:
             AllTiles.append(newTile)
             CurrentTile = None
             LineBuffer = []
-
-from ROOT import lut, dofps
+from cppyy.gbl import lut, dofps
 fps = dofps(AllTiles)
 LUT = lut(AllTiles)
+corners = []
 for i, o in enumerate(fps):
     # it turns out, there are no ambiguities about which tiles match against each other
     # for many it holds that for each border there is exactly one other tile with one edge that has the same fingerprint
@@ -58,7 +58,12 @@ for i, o in enumerate(fps):
         print("Tile", o.first, "is on an edge")
     elif ones == 2:
         print("Tile", o.first, "is in a corner")
+        corners.append(o.first)
     elif ones > 2:
         print("This tile doesn't work")
 
+cornerproduct = 1
+for c in corners:
+    cornerproduct *= c
 
+print("solution is:", cornerproduct)
