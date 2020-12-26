@@ -7,7 +7,7 @@
 struct cupvalue {
   int val;
   explicit cupvalue(int v) {
-    if (v >= 0) {
+    if (v > 0) {
       val = v % 10;
     } else {
       int add_at_least = -v;
@@ -61,16 +61,27 @@ auto parseinput(int i) {
   return b;
 }
 
+// TODO: add iterable concept
+template <typename T> void printcontainer(const T &t) {
+  std::cout << '{';
+  for (auto e : t) {
+    std::cout << e << ", ";
+  }
+  std::cout << '}' << std::endl;
+}
+
 void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   // fix underflow
-  auto seekval = buffer[current] - 1;
+  auto seekval = buffer[(current)%9] - 1;
   // TODO: put more descriptive thing for current + buffer.size()
   std::size_t target = current + buffer.size();
   auto seeker = [current, buffer](const cupvalue &seekval) {
     // std::cout << "seeking " << seekval << '\n';
     for (std::size_t scan = current + 4; scan < current + buffer.size();
          ++scan) {
-      if (seekval == buffer[scan]) {
+      std::cout << "checking if at position " << scan << " there is a " << seekval << '\n';
+      std::cout << "i see a " << buffer[(scan)%9] << "there\n";
+      if (seekval == buffer[(scan)%9]) {
         // target = scan;
         return scan;
       }
@@ -81,34 +92,36 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   int seek_n_times = 0;
   while (target == current + buffer.size()) {
     seek_n_times++;
+    std::cout << "searching for " << seekval << '\n';
+    std::cout << "current pointer is " << current << '\n';
     target = seeker(seekval);
+    std::cout << "target is " << target << '\n';
+    std::cout << "target == " << current+buffer.size() << " is the repeat-condition" << std::endl;
+
     // NB: do not use after loop!
-    // std::cout << "reducing seekval from " << seekval;
     --seekval;
     // std::cout << " to " << seekval << '\n';
   }
-  if (seek_n_times>3) {
-    std::cout << "this shouldn't have happened" << std::endl;
-  }
-
   std::array<cupvalue, 3> moving;
   for (std::size_t i = 0; i < 3; ++i) {
-    moving[i] = buffer[current + i + 1];
+    moving[i] = buffer[(current + i + 1)%9];
   }
+  if (seek_n_times>3) {
+    std::cout << "this shouldn't have happened" << std::endl;
+    std::cout << "started searching at " << buffer[(current)%9] << "-1\n";
+    std::cout << "decremented " << seek_n_times << "times\n";
+    std::cout << "pick up values are:";
+    printcontainer(moving);
+    std::cout << "setup is:";
+    printcontainer(buffer);
+  }
+
   for (std::size_t m = current + 4; m <= target; ++m) {
-    buffer[m - 3] = buffer[m];
+    buffer[(m - 3)%9] = buffer[(m)%9];
   }
   for (std::size_t i = 0; i < 3; ++i) {
-    buffer[target - 2 + i] = moving[i];
+    buffer[(target - 2 + i)%9] = moving[i];
   }
-}
-
-template <typename T> void printcontainer(const T &t) {
-  std::cout << '{';
-  for (auto e : t) {
-    std::cout << e << ", ";
-  }
-  std::cout << '}' << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -122,7 +135,7 @@ int main(int argc, char **argv) {
   printcontainer(game);
   for (std::size_t steps = 0; steps < 100; steps++) {
     step(game, steps);
-    // printcontainer(game);
+    printcontainer(game);
   }
   return 42;
 }
