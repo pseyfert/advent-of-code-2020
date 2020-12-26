@@ -1,8 +1,10 @@
-#include <boost/circular_buffer.hpp>
-#include <boost/circular_buffer/base.hpp>
+// #include <boost/circular_buffer.hpp>
+// #include <boost/circular_buffer/base.hpp>
+#include <array>
 #include <compare>
 #include <iostream>
 #include <string>
+#include <vector>
 
 struct cupvalue {
   int val;
@@ -53,10 +55,14 @@ struct cupvalue {
 };
 
 auto parseinput(int i) {
-  boost::circular_buffer<cupvalue> b(9);
+  std::vector<cupvalue> reverse;
+  std::vector<cupvalue> b;
   while (i > 0) {
-    b.push_front(cupvalue{i % 10});
+    reverse.push_back(cupvalue{i % 10});
     i = i / 10;
+  }
+  for (auto it = reverse.rbegin(); it != reverse.rend(); it++) {
+    b.push_back(*it);
   }
   return b;
 }
@@ -70,18 +76,19 @@ template <typename T> void printcontainer(const T &t) {
   std::cout << '}' << std::endl;
 }
 
-void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
+template <typename T> void step(T &buffer, std::size_t current) {
   // fix underflow
-  auto seekval = buffer[(current)%9] - 1;
+  auto seekval = buffer[(current) % 9] - 1;
   // TODO: put more descriptive thing for current + buffer.size()
   std::size_t target = current + buffer.size();
   auto seeker = [current, buffer](const cupvalue &seekval) {
     // std::cout << "seeking " << seekval << '\n';
     for (std::size_t scan = current + 4; scan < current + buffer.size();
          ++scan) {
-      std::cout << "checking if at position " << scan << " there is a " << seekval << '\n';
-      std::cout << "i see a " << buffer[(scan)%9] << "there\n";
-      if (seekval == buffer[(scan)%9]) {
+      // std::cout << "checking if at position " << scan << " there is a " <<
+      // seekval << '\n'; std::cout << "i see a " << buffer[(scan)%9] <<
+      // "there\n";
+      if (seekval == buffer[(scan) % 9]) {
         // target = scan;
         return scan;
       }
@@ -92,11 +99,12 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   int seek_n_times = 0;
   while (target == current + buffer.size()) {
     seek_n_times++;
-    std::cout << "searching for " << seekval << '\n';
-    std::cout << "current pointer is " << current << '\n';
+    // std::cout << "searching for " << seekval << '\n';
+    // std::cout << "current pointer is " << current << '\n';
     target = seeker(seekval);
-    std::cout << "target is " << target << '\n';
-    std::cout << "target == " << current+buffer.size() << " is the repeat-condition" << std::endl;
+    // std::cout << "target is " << target << '\n';
+    // std::cout << "target == " << current+buffer.size() << " is the
+    // repeat-condition" << std::endl;
 
     // NB: do not use after loop!
     --seekval;
@@ -104,11 +112,11 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   }
   std::array<cupvalue, 3> moving;
   for (std::size_t i = 0; i < 3; ++i) {
-    moving[i] = buffer[(current + i + 1)%9];
+    moving[i] = buffer[(current + i + 1) % 9];
   }
-  if (seek_n_times>3) {
+  if (seek_n_times > 3) {
     std::cout << "this shouldn't have happened" << std::endl;
-    std::cout << "started searching at " << buffer[(current)%9] << "-1\n";
+    std::cout << "started searching at " << buffer[(current) % 9] << "-1\n";
     std::cout << "decremented " << seek_n_times << "times\n";
     std::cout << "pick up values are:";
     printcontainer(moving);
@@ -117,10 +125,10 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   }
 
   for (std::size_t m = current + 4; m <= target; ++m) {
-    buffer[(m - 3)%9] = buffer[(m)%9];
+    buffer[(m - 3) % 9] = buffer[(m) % 9];
   }
   for (std::size_t i = 0; i < 3; ++i) {
-    buffer[(target - 2 + i)%9] = moving[i];
+    buffer[(target - 2 + i) % 9] = moving[i];
   }
 }
 
@@ -135,7 +143,8 @@ int main(int argc, char **argv) {
   printcontainer(game);
   for (std::size_t steps = 0; steps < 100; steps++) {
     step(game, steps);
-    printcontainer(game);
+    // printcontainer(game);
   }
+  printcontainer(game);
   return 42;
 }
