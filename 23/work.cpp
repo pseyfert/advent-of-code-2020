@@ -30,6 +30,14 @@ struct cupvalue {
   friend cupvalue operator-(const cupvalue &lhs, int rhs) {
     return cupvalue(lhs.val - rhs);
   }
+  cupvalue& operator--() {
+    if (val==0) {
+      val=9;
+    } else {
+      val--;
+    }
+    return *this;
+  }
   friend std::ostream &operator<<(std::ostream &os, const cupvalue &cv) {
     os << cv.val;
     return os;
@@ -54,15 +62,25 @@ auto parseinput(int i) {
 
 void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   // fix underflow
-  std::size_t target;
   auto seekval = buffer[current] - 1;
-  for (std::size_t scan = current + 4; scan < current + buffer.size();
-       ++current) {
-    if (seekval == buffer[scan]) {
-      target = scan;
-      break;
+  // TODO: put more descriptive thing for current + buffer.size()
+  std::size_t target = current + buffer.size();
+  auto seeker = [=]() {
+    for (std::size_t scan = current + 4; scan < current + buffer.size();
+         ++scan) {
+      if (seekval == buffer[scan]) {
+        // target = scan;
+        return scan;
+      }
     }
+    return current + buffer.size();
+  };
+  while (target == current+ buffer.size()) {
+    target = seeker();
+    // NB: do not use after loop!
+    --seekval;
   }
+  
   std::array<cupvalue, 3> moving;
   for (std::size_t i = 0; i < 3; ++i) {
     moving[i] = buffer[current + i + 1];
@@ -85,11 +103,16 @@ template <typename T> void printcontainer(const T &t) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    std::cout << "USAGE: ./" << argv[0] << " startingsetup_as_integer";
+    std::cout << "USAGE: " << argv[0] << " startingsetup_as_integer";
     std::cout << std::endl;
+    return 666;
   }
   int input = std::stol(argv[1]);
   auto game = parseinput(input);
   printcontainer(game);
+  for (std::size_t steps = 0; steps < 10; steps++) {
+    step(game, steps);
+    printcontainer(game);
+  }
   return 42;
 }
