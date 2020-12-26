@@ -11,13 +11,14 @@ struct cupvalue {
       val = v % 10;
     } else {
       int add_at_least = -v;
-      add_at_least -= v % 10;
-      add_at_least += 10;
-      if ((add_at_least % 10) != 0) {
-        std::cout << "BIG mistake 1\n";
+      while ((add_at_least % 10) != 0) {
+        add_at_least++;
+      }
+      if (add_at_least > 10) {
+        std::cout << "huh?\n";
       }
       val = v + add_at_least;
-      if (val < 0) {
+      if (val < 0 || val >= 10) {
         std::cout << "BIG mistake 2\n";
       }
     }
@@ -30,9 +31,9 @@ struct cupvalue {
   friend cupvalue operator-(const cupvalue &lhs, int rhs) {
     return cupvalue(lhs.val - rhs);
   }
-  cupvalue& operator--() {
-    if (val==0) {
-      val=9;
+  cupvalue &operator--() {
+    if (val == 0) {
+      val = 9;
     } else {
       val--;
     }
@@ -65,7 +66,8 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
   auto seekval = buffer[current] - 1;
   // TODO: put more descriptive thing for current + buffer.size()
   std::size_t target = current + buffer.size();
-  auto seeker = [=]() {
+  auto seeker = [current, buffer](const cupvalue &seekval) {
+    // std::cout << "seeking " << seekval << '\n';
     for (std::size_t scan = current + 4; scan < current + buffer.size();
          ++scan) {
       if (seekval == buffer[scan]) {
@@ -73,14 +75,22 @@ void step(boost::circular_buffer<cupvalue> &buffer, std::size_t current) {
         return scan;
       }
     }
+    // std::cout << "nope\n";
     return current + buffer.size();
   };
-  while (target == current+ buffer.size()) {
-    target = seeker();
+  int seek_n_times = 0;
+  while (target == current + buffer.size()) {
+    seek_n_times++;
+    target = seeker(seekval);
     // NB: do not use after loop!
+    // std::cout << "reducing seekval from " << seekval;
     --seekval;
+    // std::cout << " to " << seekval << '\n';
   }
-  
+  if (seek_n_times>3) {
+    std::cout << "this shouldn't have happened" << std::endl;
+  }
+
   std::array<cupvalue, 3> moving;
   for (std::size_t i = 0; i < 3; ++i) {
     moving[i] = buffer[current + i + 1];
@@ -110,9 +120,9 @@ int main(int argc, char **argv) {
   int input = std::stol(argv[1]);
   auto game = parseinput(input);
   printcontainer(game);
-  for (std::size_t steps = 0; steps < 10; steps++) {
+  for (std::size_t steps = 0; steps < 100; steps++) {
     step(game, steps);
-    printcontainer(game);
+    // printcontainer(game);
   }
   return 42;
 }
